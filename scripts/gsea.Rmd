@@ -1,0 +1,241 @@
+---
+title: "gage"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{R}
+library(tidyverse)
+
+library(fgsea)
+library(clusterProfiler)
+library(ReactomePA)
+library(reactome.db)
+library(pathview)
+library(enrichplot)
+```
+
+### Read in T0T1 results (fold changes)
+
+```{R}
+fcs<-read.table("../output/CD8/edgeR/Active-v-Ctrl.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+
+### EnsemblID to Entrez geneID
+entrezids<-bitr(geneID = fcs$Gene.stable.ID, fromType = "ENSEMBL", toType = "ENTREZID", OrgDb = "org.Hs.eg.db", drop = T)
+
+fcsmerge<-merge(fcs, entrezids, by=1)
+
+genelist<-fcsmerge$logFC
+names(genelist)<-fcsmerge$ENTREZID
+
+# omit any NA values 
+genelist<-na.omit(genelist)
+
+# sort the list in decreasing order (required for clusterProfiler)
+genelist = sort(genelist, decreasing = TRUE)
+
+### Remove duplicated genenames
+genelist<-genelist[!duplicated(names(genelist))]
+
+```
+
+
+### KEGG pathways
+
+```{R}
+kk2 <- gseKEGG(geneList     = genelist,
+               organism     = 'hsa',
+               minGSSize    = 10,
+               pvalueCutoff = 0.05,
+               verbose      = FALSE)
+
+head(kk2, 25)
+
+outtbl<-kk2@result
+write.table(outtbl, "../output/CD8/gsea/tables/KEGG/Active-v-Ctrl.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+for(i in 1:nrow(kk2)){
+  ### Workaround to get output files where I want them instead of current WD
+  setwd("../plots/CD8/gsea/KEGG/Active-v-Ctrl")
+  pathname<-kk2@result$Description[i]
+  pathview(gene.data = genelist, pathway.id=kk2@result$ID[i], species="hsa", limit=list(gene=2, cpd=1), out.suffix=pathname, kegg.dir = "../gsea-files/")
+  
+  setwd("../../../../")
+}
+```
+
+
+### Reactome pathways
+
+```{R}
+### Using ReactomePA module (gives a warning that fgseamultilevel is recommended) 
+y <- gsePathway(geneList     = genelist,
+               organism     = 'human',
+               #minGSSize    = 120,
+               minGSSize    = 10,
+               maxGSSize = 500,
+               pvalueCutoff = 0.05,
+               by="fgsea",
+               verbose      = FALSE)
+head(y, 20)
+write.table(y@result, "../output/CD8/gsea/tables/Reactome/Active-v-Ctrl.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+x <- enrichplot::pairwise_termsim(y)   
+emapplot(x, cex_label_category=0.5)
+ggsave("../plots/CD8/gsea/Reactome/Active-v-Ctrl-pathways.png", width = 8, height = 6)
+
+edox<-setReadable(y, "org.Hs.eg.db", "ENTREZID")
+cnetplot(edox, foldChange = genelist, node_label="category", layout="fr")
+ggtmp<-cnetplot(edox, foldChange = genelist, node_label="category", layout="fr", showCategory = 10)
+ggtmp #+coord_cartesian(xlim = c(-20, 20), ylim=c(-7, 15))
+ggsave("../plots/CD8/gsea/Reactome/Active-v-Ctrl-network.png", width = 8, height = 6, )
+```
+
+### Read in Less active v Ctrl (fold changes)
+
+```{R}
+fcs<-read.table("../output/CD8/edgeR/LessActive-v-Ctrl.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+
+fcsmerge<-merge(fcs, entrezids, by=1)
+
+genelist<-(fcsmerge$logFC)
+names(genelist)<-fcsmerge$ENTREZID
+
+# omit any NA values 
+genelist<-na.omit(genelist)
+
+# sort the list in decreasing order (required for clusterProfiler)
+genelist = sort(genelist, decreasing = TRUE)
+
+### Remove duplicated genenames
+genelist<-genelist[!duplicated(names(genelist))]
+
+```
+
+
+### KEGG pathways
+
+```{R}
+kk2 <- gseKEGG(geneList     = genelist,
+               organism     = 'hsa',
+               minGSSize    = 10,
+               pvalueCutoff = 0.05,
+               verbose      = FALSE)
+
+head(kk2, 25)
+
+outtbl<-kk2@result
+write.table(outtbl, "../output/CD8/gsea/tables/KEGG/LessActive-v-Ctrl.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+
+for(i in 1:nrow(kk2)){
+  ### Workaround to get output files where I want them instead of current WD
+  setwd("../plots/CD8/gsea/KEGG/LessActive-v-Ctrl/")
+  pathname<-kk2@result$Description[i]
+  pathview(gene.data = genelist, pathway.id=kk2@result$ID[i], species="hsa", limit=list(gene=2, cpd=1), out.suffix=pathname, kegg.dir = "../gsea-files/")
+  
+  setwd("../../../../")
+}
+```
+
+### Reactome pathways
+
+```{R}
+### Using ReactomePA module (gives a warning that fgseamultilevel is recommended) 
+y <- gsePathway(geneList     = genelist,
+               organism     = 'human',
+               minGSSize    = 10,
+               maxGSSize = 500,
+               pvalueCutoff = 0.05,
+               #by="fgsea",
+               verbose      = FALSE)
+head(y, 20)
+write.table(y@result, "../output/CD8/gsea/tables/Reactome/LessActive-v-Ctrl.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+x <- enrichplot::pairwise_termsim(y)   
+emapplot(x, cex_label_category=0.5)
+ggsave("../plots/CD8/gsea/Reactome/LessActive-v-Ctrl-pathways.png", width = 8, height = 6)
+
+edox<-setReadable(y, "org.Hs.eg.db", "ENTREZID")
+cnetplot(edox, foldChange = genelist, node_label="category", showCategory = 10, layout="fr")
+ggsave("../plots/CD8/gsea/Reactome/LessActive-v-Ctrl-network.png", width = 8, height = 6)
+
+```
+
+### Active vs. LessActive
+
+```{R}
+fcs<-read.table("../output/CD8/edgeR/Active-v-LessActive.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+
+fcsmerge<-merge(fcs, entrezids, by=1)
+
+genelist<-fcsmerge$logFC
+names(genelist)<-fcsmerge$ENTREZID
+
+# omit any NA values 
+genelist<-na.omit(genelist)
+
+# sort the list in decreasing order (required for clusterProfiler)
+genelist = sort(genelist, decreasing = TRUE)
+
+### Remove duplicated genenames
+genelist<-genelist[!duplicated(names(genelist))]
+
+```
+
+
+### KEGG pathways
+
+```{R}
+kk2 <- gseKEGG(geneList     = genelist,
+               organism     = 'hsa',
+               minGSSize    = 10,
+               pvalueCutoff = 0.05,
+               verbose      = FALSE)
+
+head(kk2, 25)
+
+outtbl<-kk2@result
+write.table(outtbl, "../output/CD8/gsea/tables/KEGG/Active-v-LessActive.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+#nrow(kk2)
+for(i in 14:nrow(kk2)){
+  ### Workaround to get output files where I want them instead of current WD
+  setwd("../plots/CD8/gsea/KEGG/Active-v-LessActive")
+  pathname<-kk2@result$Description[i]
+  pathview(gene.data = genelist, pathway.id=kk2@result$ID[i], species="hsa", limit=list(gene=2, cpd=1), out.suffix=pathname, kegg.dir = "../gsea-files/")
+  
+  setwd("../../../../")
+}
+```
+
+
+### Reactome pathways
+
+```{R}
+### Using ReactomePA module
+y <- gsePathway(geneList     = genelist,
+               organism     = 'human',
+               minGSSize    = 10,
+               maxGSSize = 500,
+               pvalueCutoff = 0.05,
+               by="fgsea",
+               verbose      = FALSE)
+head(y, 20)
+write.table(y@result, "../output/CD8/gsea/tables/Reactome/Active-v-LessActive.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+x <- enrichplot::pairwise_termsim(y)   
+emapplot(x, cex_label_category=0.5)
+ggsave("../plots/CD8/gsea/Reactome/Active-v-LessActive-pathways.png", width = 8, height = 6)
+
+edox<-setReadable(y, "org.Hs.eg.db", "ENTREZID")
+cnetplot(edox, foldChange = genelist, node_label="category", layout = "graphopt")
+ggsave("../plots/CD8/gsea/Reactome/Active-v-LessActive-network.png", width = 8, height = 6)
+
+```
+
+
+

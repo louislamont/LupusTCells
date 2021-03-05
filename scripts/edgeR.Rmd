@@ -1,0 +1,103 @@
+---
+title: "longitudinal-output"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{R}
+library(tidyverse)
+library(edgeR)
+```
+
+
+```{R}
+counts<-read.table("../output/CD8/counts/rawcounts.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+
+metadata<-read.table("../data/CD8/SraRunTable.txt", sep=",", header=T, stringsAsFactors = F)
+metadata<-metadata[,c("Run", "source_name")]
+### Order metadata
+metadata<-metadata[order(metadata$Run),]
+write.table(metadata, "../data/CD8/metadata.txt", sep="\t", col.names = T, row.names = F, quote=F)
+```
+
+### Filter low expression genes
+
+```{R}
+filtered.counts<-counts
+### Filter lowly expressed genes
+### cutoff - 10/L (L = min library size in millions)
+L<-round(10/(min(colSums(filtered.counts[,6:ncol(filtered.counts)]))/1000000), digits = 2) 
+### 5 because I am using 5 samples in each group
+keep <- rowSums(cpm(filtered.counts[,6:ncol(filtered.counts)], )>L)>=5
+
+### keep is a vector of TRUE (if that gene passes our expression cutoff) or FALSE if it doesn't. Only TRUE rows are kept
+filtered.counts <-filtered.counts[keep, ]
+nrow(filtered.counts)
+### 15284 genes left
+```
+
+
+
+```{R}
+y<-DGEList(counts=filtered.counts[,6:ncol(filtered.counts)], genes = filtered.counts[,1:5])
+
+### Check column order and metadata order matches
+colnames(y)==as.character(metadata$Run)
+
+y<-calcNormFactors(y, method = "TMM")
+
+cpmout<-as.data.frame(cpm(y))
+cpmout<-cbind(y$genes, cpmout)
+
+write.table(cpmout, "../output/CD8/edgeR/CPM.txt", sep="\t", col.names = T, row.names = F, quote=F)
+```
+
+```{R}
+png("../plots/CD8/MDS/samples-by-group.png", width = 800, height = 600)
+plotMDS(y, col=as.integer(factor(metadata$source_name)))
+dev.off()
+```
+
+
+
+```{R}
+disease<-factor(unlist(lapply(str_split(metadata$source_name, "_"), "[[", 1)), levels=c("Ctrl", "SLE less active", "SLE active"))
+design<-model.matrix(~disease)
+
+y<-estimateDisp(y, design)
+
+fit <- glmFit(y, design)
+colnames(design)
+
+### If you want just PC/lncRNA/etc genes (i.e. no pseudogenes, rRNAs, etc.) lrt[lrt$genes$Gene.type %in% c("IG_C_gene", "IG_V_gene", "lncRNA", "miRNA", "protein_coding", "TR_C_gene", "TR_D_gene", "TR_J_gene", "TR_V_gene"),]
+### Less active disease state vs control
+lrt <- glmLRT(fit, coef=2)
+deoutput <- topTags(lrt, n=Inf)$table
+write.table(deoutput, "../output/CD8/edgeR/LessActive-v-Ctrl.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+deoutput<-deoutput[which(deoutput$FDR<0.05),]
+deoutput<-deoutput[which(abs(deoutput$logFC)>=1),]
+write.table(deoutput, "../output/CD8/edgeR/DE/LessActive-v-Ctrl.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+### Active disease state vs control
+lrt <- glmLRT(fit, coef=3)
+deoutput <- topTags(lrt, n=Inf)$table
+write.table(deoutput, "../output/CD8/edgeR/Active-v-Ctrl.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+deoutput<-deoutput[which(deoutput$FDR<0.05),]
+deoutput<-deoutput[which(abs(deoutput$logFC)>=1),]
+write.table(deoutput, "../output/CD8/edgeR/DE/Active-v-Ctrl.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+### Active disease state vs Less active disease state
+lrt <- glmLRT(fit, contrast = c(0, -1, 1))
+deoutput <- topTags(lrt, n=Inf)$table
+write.table(deoutput, "../output/CD8/edgeR/Active-v-LessActive.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+deoutput<-deoutput[which(deoutput$FDR<0.05),]
+deoutput<-deoutput[which(abs(deoutput$logFC)>=1),]
+write.table(deoutput, "../output/CD8/edgeR/DE/Active-v-LessActive.txt", sep="\t", col.names = T, row.names = F, quote=F)
+```
+

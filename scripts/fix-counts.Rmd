@@ -1,0 +1,31 @@
+---
+title: "fix-counts"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{R}
+library(tidyverse)
+
+countsin<-read.table("../output/CD8/counts/counts.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+
+### Remove version from gene IDs
+countsin$Geneid<-unlist(lapply(str_split(countsin$Geneid, "\\."), "[[", 1))
+
+### Read in gene info
+geneinfo<-read.table("../data/ensembl_geneinfo_v103.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+
+colnames(countsin)
+
+countsout<-merge(geneinfo, countsin[,c(1,7:ncol(countsin))], by=1)
+
+fixednames<-unlist(lapply(str_split(colnames(countsout)[6:ncol(countsout)], "\\."), "[[", 7))
+fixedcols<-c(colnames(countsout)[1:5], fixednames)
+
+colnames(countsout)<-fixedcols
+
+write.table(countsout, "../output/CD8/counts/rawcounts.txt", sep="\t", col.names = T, row.names = F, quote=F)
+```

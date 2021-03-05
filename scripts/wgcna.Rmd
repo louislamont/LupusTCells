@@ -1,0 +1,400 @@
+---
+title: "WGCNA"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{R}
+library(tidyverse)
+library(WGCNA)
+```
+
+### Read in counts
+
+```{R}
+allcounts<-read.table("../output/CD8/edgeR/CPM.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+### CD99 has two genes (one on X and one on Y)
+allcounts[21,"Gene.stable.ID"]<-paste0(allcounts[21,"Gene.stable.ID"], "_PAR_Y")
+allcounts[21,"Chromosome.scaffold.name"]<-"Y"
+
+rownames(allcounts)<-allcounts$Gene.stable.ID
+
+logcounts<-log2(allcounts[,c(6:ncol(allcounts))]+1)
+
+```
+
+
+
+```{R}
+datExpr0<-as.data.frame(t(logcounts))
+names(datExpr0)<-rownames(logcounts)
+rownames(datExpr0)<-colnames(logcounts)
+```
+
+
+
+```{R}
+gsg = goodSamplesGenes(datExpr0, verbose = 3)
+gsg$allOK
+### TRUE
+
+sampleTree = hclust(dist(datExpr0), method="average")
+
+pdf(file = "../plots/CD8/wgcna/SampleClustering.pdf", width = 12, height = 12)
+plot(sampleTree, main="Sample clustering to detect outliers", sub="", xlab="", cex.lab=1.5, cex.axis=1.5, cex.main=2)
+dev.off()
+
+datExpr<-datExpr0
+
+nGenes = ncol(datExpr)
+nSamples = nrow(datExpr)
+```
+
+### Load Clinical Data
+
+```{R}
+traitData<-read.table("../data/CD8/metadata.txt", sep="\t", header=T, stringsAsFactors = F)
+
+allTraits<-traitData
+
+allSamples = rownames(datExpr)
+traitRows = match(allSamples, allTraits$Run)
+datTraits = as.data.frame(allTraits[traitRows, -1])
+datTraits$disease<-factor(unlist(lapply(str_split(metadata$source_name, "_"), "[[", 1)), levels=c("Ctrl", "SLE less active", "SLE active"))
+datTraits$`allTraits[traitRows, -1]`<-NULL
+
+rownames(datTraits) = allTraits[traitRows, 1]
+collectGarbage()
+
+sampleTree2 = hclust(dist(datExpr), method = "average")
+# Convert traits to a color representation: white means low, red means high, grey means missing entry
+traitColors = numbers2colors(as.numeric(datTraits$disease), signed = FALSE);
+# Plot the sample dendrogram and the colors underneath.
+png("../plots/CD8/wgcna/dendo-and-colors.png", width = 800, height = 600)
+plotDendroAndColors(sampleTree2, traitColors,
+                  groupLabels = names(datTraits),
+                  main = "Sample dendrogram and trait heatmap")
+dev.off()
+
+save(datExpr, datTraits,
+    file = "../output/CD8/wgcna/step1-dataInput.RData")
+```
+
+### Step 2: Construction of network
+
+```{R}
+lnames = load(file = "../output/CD8/wgcna/step1-dataInput.RData")
+
+# Choose a set of soft-thresholding powers
+powers = c(c(1:10), seq(from = 12, to=20, by=2))
+# Call the network topology analysis function
+sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5,
+                        networkType = "signed hybrid", corFnc = "bicor",
+                        corOptions =  list(use = 'p', maxPOutliers = 0.1))
+
+png("../plots/CD8/wgcna/pick-threshold.png", width = 600, height = 400)
+# Plot the results:
+#sizeGrWindow(9, 5)
+par(mfrow = c(1,2))
+cex1 = 0.9;
+# Scale-free topology fit index as a function of the soft-thresholding power
+plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+     xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+    main = paste("Scale independence"));
+text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+    labels=powers,cex=cex1,col="red")
+# this line corresponds to using an R^2 cut-off of h
+abline(h=0.7,col="red")
+# Mean connectivity as a function of the soft-thresholding power
+plot(sft$fitIndices[,1], sft$fitIndices[,5],
+    xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+    main = paste("Mean connectivity"))
+text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+dev.off()
+```
+
+### Blockwise network construction
+
+```{R}
+bwnet = blockwiseModules(datExpr, maxBlockSize = 22000,
+                     power = 6, TOMType = "signed", minModuleSize = 30,
+                     networkType = "signed hybrid", corType="bicor",
+                     reassignThreshold = 0, mergeCutHeight = 0.25,
+                     numericLabels = TRUE,
+                     saveTOMs = T,
+                     saveTOMFileBase = "../output/CD8/wgcna/TOM-blockwise",
+                     loadTOM = F,
+                     verbose = 3,
+                     maxPOutliers = 0.1)
+                     #corOptions = list(use = 'p', maxPOutliers = 0.1))
+
+moduleLabels = bwnet$colors
+
+length(table(moduleLabels))
+
+bwLabels = matchLabels(bwnet$colors, moduleLabels, pThreshold = 1e-7)
+bwColors = labels2colors(bwLabels)
+
+# Convert labels to colors for plotting
+moduleColors = labels2colors(bwLabels)
+MEs<-bwnet$MEs
+geneTree<-bwnet$dendrograms
+
+save(MEs, moduleLabels, moduleColors, geneTree,
+    file = "../output/CD8/wgcna/step2-networkConstruction-bw.RData")
+
+
+bwModuleColors = labels2colors(bwLabels)
+plotDendroAndColors(bwnet$dendrograms[[1]], bwModuleColors[bwnet$blockGenes[[1]]],
+                  "Module colors", main = "Gene dendrogram and module colors in block 1",
+                  dendroLabels = FALSE, hang = 0.03,
+                  addGuide = TRUE, guideHang = 0.05)
+
+allhubgenes<-chooseTopHubInEachModule(datExpr, bwModuleColors, power=6, type="signed hybrid", corFnc="bicor", corOptions =list(use = 'p', maxPOutliers = 0.1))
+```
+
+
+### Relate modules to clinical traits
+
+```{R}
+lnames = load(file = "../output/CD8/wgcna/step1-dataInput.RData")
+load("../output/CD8/wgcna/step2-networkConstruction-bw.RData")
+# Define numbers of genes and samples
+nGenes = ncol(datExpr)
+nSamples = nrow(datExpr)
+# Recalculate MEs with color labels
+MEs0 = moduleEigengenes(datExpr, moduleColors)$eigengenes
+MEs = orderMEs(MEs0)
+diseasecategory<-as.numeric(datTraits$disease)-1
+moduleTraitCor = cor(MEs, diseasecategory, use = "p")
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples)
+
+
+sizeGrWindow(10,6)
+# Will display correlations and their p-values
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+                        signif(moduleTraitPvalue, 1), ")", sep = "");
+dim(textMatrix) = dim(moduleTraitCor)
+#par(mar = c(6, 8.5, 3, 3))
+png("../plots/CD8/wgcna/trait-module-relationship.png", width = 6, height = 10, units = "in", res = 600)
+par(mar = c(4, 8.5, 3, 3))
+# Display the correlation values within a heatmap plot
+labeledHeatmap(Matrix = moduleTraitCor,
+             #xLabels = names(datTraits)[c(1,2,10)],
+             xLabels = c("DiseaseState"),
+             yLabels = names(MEs),
+             ySymbols = names(MEs),
+             colorLabels = FALSE,
+             colors = blueWhiteRed(50),
+             textMatrix = textMatrix,
+             setStdMargins = FALSE,
+             cex.text = 0.6,
+             cex.lab.y = 1,
+             zlim = c(-1,1),
+             plotLegend = F,
+             main = paste("Module-trait relationships"))
+dev.off()
+
+modNames = substring(names(MEs), 3)
+
+### Write file containing all gene-module relationships
+modulemembership<-data.frame(gene=names(moduleLabels), module=moduleColors)
+write.table(modulemembership, "../output/CD8/wgcna/moduleMembership/all-genes.txt", sep="\t", col.names = T, row.names = F, quote=F)
+
+allgenefile<-read.table("../output/CD8/edgeR/Active-v-Ctrl.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+
+geneNames<-allgenefile[match(names(datExpr), allgenefile$Gene.stable.ID), "Gene.name"]
+  write.table(geneNames, "../output/CD8/wgcna/moduleMembership/genenames/all-genes.txt", sep="\t", col.names = F, row.names = F, quote=F)
+
+### Write files with genes in each individual module
+for (i in unique(modulemembership$module)){
+  module = i
+  moduleGenes = moduleColors==module
+  
+  geneIDs<-names(datExpr)[moduleColors==module]
+
+  write.table(geneIDs, paste0("../output/CD8/wgcna/moduleMembership/", module, ".txt"), sep="\t", col.names = F, row.names = F, quote=F)
+  
+  geneNames<-allgenefile[match(geneIDs, allgenefile$Gene.stable.ID), "Gene.name"]
+  write.table(geneNames, paste0("../output/CD8/wgcna/moduleMembership/geneNames/", module, ".txt"), sep="\t", col.names = F, row.names = F, quote=F)
+}
+```
+
+### Make DE gene enrichment plot
+
+```{R}
+modtableall<-as.data.frame(table(modulemembership$module))
+
+### do the same with DE genes >2 FC
+degenes<-read.table("../output/CD8/edgeR/DE/LessActive-v-Ctrl.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+sigmodules<-modulemembership[modulemembership$gene %in% degenes$Gene.stable.ID,]
+sigtable<-as.data.frame(table(sigmodules$module))
+modmerge<-merge(modtableall, sigtable, by=1, all.x=T)
+
+modmerge[is.na(modmerge)]<-0
+
+### FC with all DE and FC > 2
+modmerge$expectedfreq<-sum(modmerge$Freq.y)/sum(modmerge$Freq.x)
+modmerge$expected<-sum(modmerge$Freq.y)/sum(modmerge$Freq.x)*modmerge$Freq.x
+modmerge$FC<-signif(log2(modmerge$Freq.y/modmerge$expected), 3)
+
+### Calculate p-value of DE gene enrichment (>2 FC) for each module
+for (i in 1:nrow(modmerge)){
+  # Make contingency table (In group/out of group, DE/not DE)
+  
+  ### For DE genes >2 FC
+  de<-sum(modmerge$Freq.y)
+  notde<-sum(modmerge$Freq.x)-sum(modmerge$Freq.y)
+  deingroup<-modmerge$Freq.y[i]
+  
+  ingroup<-modmerge$Freq.x[i]
+  outgroup<-sum(modmerge$Freq.x)-ingroup
+  
+  deoutgroup<-de-deingroup
+  notdeingroup<-ingroup-deingroup 
+  notdeoutgroup<-outgroup-deoutgroup
+  
+  ### Run hypergeometric test for enrichment
+  modmerge$hyper.p[i]<-(1-phyper(q=(deingroup-1), m=de, n=notde, k=ingroup))
+}
+### Correct for multiple testing and create DE gene label (format: DE genes \n (DE genes >2 FC))
+modmerge$fdr<-signif(p.adjust(modmerge$hyper.p, method="fdr"), 1)
+modmerge$LAClabel<-paste0(modmerge$Freq.y, "\n(", modmerge$fdr, ")")
+
+LACcol<-ifelse(modmerge$fdr<0.05, 0.75, 0)
+names(LACcol)<-modmerge$Var1
+
+modmerge$Freq.y<-modmerge$expectedfreq<-modmerge$expected<-modmerge$FC<-modmerge$hyper.p<-modmerge$fdr<-NULL
+```
+
+
+
+
+```{R}
+### do the same with DE genes >2 FC
+degenes<-read.table("../output/CD8/edgeR/DE/Active-v-Ctrl.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+
+sigmodules<-modulemembership[modulemembership$gene %in% degenes$Gene.stable.ID,]
+sigtable<-as.data.frame(table(sigmodules$module))
+modmerge<-merge(modmerge, sigtable, by=1, all.x=T)
+
+modmerge[is.na(modmerge)]<-0
+
+### FC with all DE and FC > 2
+modmerge$expectedfreq<-sum(modmerge$Freq)/sum(modmerge$Freq.x)
+modmerge$expected<-sum(modmerge$Freq)/sum(modmerge$Freq.x)*modmerge$Freq.x
+modmerge$FC<-signif(log2(modmerge$Freq/modmerge$expected), 3)
+
+### Calculate p-value of DE gene enrichment (>2 FC) for each module
+for (i in 1:nrow(modmerge)){
+  # Make contingency table (In group/out of group, DE/not DE)
+  ### For DE genes >2 FC
+  de<-sum(modmerge$Freq)
+  notde<-sum(modmerge$Freq.x)-sum(modmerge$Freq)
+  deingroup<-modmerge$Freq[i]
+  
+  ingroup<-modmerge$Freq.x[i]
+  outgroup<-sum(modmerge$Freq.x)-ingroup
+  
+  deoutgroup<-de-deingroup
+  notdeingroup<-ingroup-deingroup 
+  notdeoutgroup<-outgroup-deoutgroup
+  
+  ### Run hypergeometric test for enrichment
+  modmerge$hyper.p[i]<-(1-phyper(q=(deingroup-1), m=de, n=notde, k=ingroup))
+}
+### Correct for multiple testing and create DE gene label (format: DE genes \n (DE genes >2 FC))
+modmerge$fdr<-signif(p.adjust(modmerge$hyper.p, method="fdr"), 1)
+modmerge$AClabel<-paste0(modmerge$Freq, "\n(", modmerge$fdr, ")")
+
+ACcol<-ifelse(modmerge$fdr<0.05, 0.75, 0)
+names(ACcol)<-modmerge$Var1
+
+modmerge$Freq<-modmerge$expectedfreq<-modmerge$expected<-modmerge$FC<-modmerge$hyper.p<-modmerge$fdr<-NULL
+```
+
+```{R}
+### do the same with DE genes >2 FC
+degenes<-read.table("../output/CD8/edgeR/DE/Active-v-LessActive.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
+sigmodules<-modulemembership[modulemembership$gene %in% degenes$Gene.stable.ID,]
+sigtable<-as.data.frame(table(sigmodules$module))
+modmerge<-merge(modmerge, sigtable, by=1, all.x=T)
+
+modmerge[is.na(modmerge)]<-0
+
+###### Calculate fold-change
+### FC with all DE and FC > 2
+modmerge$expectedfreq<-sum(modmerge$Freq)/sum(modmerge$Freq.x)
+modmerge$expected<-sum(modmerge$Freq)/sum(modmerge$Freq.x)*modmerge$Freq.x
+modmerge$FC<-signif(log2(modmerge$Freq/modmerge$expected), 3)
+
+### Calculate p-value of DE gene enrichment (>2 FC) for each module
+for (i in 1:nrow(modmerge)){
+  # Make contingency table (In group/out of group, DE/not DE)
+  ### For DE genes >2 FC
+  de<-sum(modmerge$Freq)
+  notde<-sum(modmerge$Freq.x)-sum(modmerge$Freq)
+  deingroup<-modmerge$Freq[i]
+  
+  ingroup<-modmerge$Freq.x[i]
+  outgroup<-sum(modmerge$Freq.x)-ingroup
+  
+  deoutgroup<-de-deingroup
+  notdeingroup<-ingroup-deingroup 
+  notdeoutgroup<-outgroup-deoutgroup
+  
+  ### Run hypergeometric test for enrichment
+  modmerge$hyper.p[i]<-(1-phyper(q=(deingroup-1), m=de, n=notde, k=ingroup))
+}
+### Correct for multiple testing and create DE gene label (format: DE genes \n (DE genes >2 FC))
+modmerge$fdr<-signif(p.adjust(modmerge$hyper.p, method="fdr"), 1)
+modmerge$ALAlabel<-paste0(modmerge$Freq, "\n(", modmerge$fdr, ")")
+
+ALAcol<-ifelse(modmerge$fdr<0.05, 0.75, 0)
+names(ALAcol)<-modmerge$Var1
+
+modmerge$Freq<-modmerge$expectedfreq<-modmerge$expected<-modmerge$FC<-modmerge$hyper.p<-modmerge$fdr<-NULL
+```
+
+```{R}
+#textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+#                        signif(moduleTraitPvalue, 1), ")", sep = "")
+textMatrix = signif(moduleTraitCor, 2)
+dim(textMatrix) = dim(moduleTraitCor)
+
+### Add additional info to textMatrix - FC, Label, and FDR
+TM2<-cbind(textMatrix, modmerge[match(str_sub(names(MEs), 3), table = modmerge$Var1),])
+
+TM2$`1`<-TM2$`2`<-TM2$Var1<-NULL
+
+#T1col<-if()
+
+png("../plots/CD8/wgcna/modules-w-DE-genes.png", width = 8, height = 14, units = "in", res = 600)
+#par(mar = c(4, 8.5, 3, 3), bg=NA)
+par(mar = c(4, 8.5, 3, 3))
+
+labeledHeatmap(Matrix = cbind(moduleTraitCor, rep(0, 26), LACcol[match(str_sub(names(MEs), 3), table = names(LACcol))], ACcol[match(str_sub(names(MEs), 3), table = names(ACcol))], ALAcol[match(str_sub(names(MEs), 3), table = names(ALAcol))]),
+             xLabels = c("DiseaseState", 
+                         #"Visit2", "Visit3", "Visit4", "Visit5", 
+                         "# of genes", "DE LessActive\nvs. Ctrl (FDR)", "DE Active vs.\nCtrl (FDR)", "DE Active vs.\nLessActive (FDR)"),
+                         #, "DE T0->T3\n(FDR)", "DE T0->PP3\n(FDR)"),
+             yLabels = names(MEs),
+             ySymbols = names(MEs),
+             colorLabels = FALSE,
+             colors = blueWhiteRed(50),
+             textMatrix = TM2,
+             setStdMargins = FALSE,
+             cex.text = 1,
+             cex.lab.y = 1, xLabelsAngle = 0, xLabelsAdj = 0.5, cex.lab.x = 1.05,
+             zlim = c(-1,1),
+             plotLegend = F,
+             verticalSeparator.x = 1:5,
+             horizontalSeparator.y = 1:32,
+             #showRows = c(4,5),
+             #showCols = c(1,2,3,4,5, 6,7),
+             main = paste("Module-trait relationships"))
+dev.off()
+```

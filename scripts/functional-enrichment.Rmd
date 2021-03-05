@@ -1,0 +1,75 @@
+---
+title: "20201006-wgcna-module-webgestalt"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{R}
+library(WebGestaltR)
+library(tidyverse)
+#listGeneSet()
+#listIDType()
+#listReferenceSet()
+
+```
+
+### Get webgestalt enrichment for DE genes between groups
+
+```{R}
+files<-Sys.glob("../output/CD8/edgeR/DE/*.txt")
+### Modules enriched in DE genes - blue, skyblue, turquoise, darkgrey
+for (file in files){
+  degenes<-read.table(file, sep="\t", header=T, stringsAsFactors = F, quote="")
+  outname<-str_sub(str_split(file, "/")[[1]][6], 1, -5)
+  
+  outputdir<-paste0("../output/CD8/edgeR/webgestalt-enrichment/", outname)
+  dir.create(outputdir, showWarnings = F)
+  ### GO BP
+  WebGestaltR(enrichDatabase = "geneontology_Biological_Process", interestGene = degenes$Gene.stable.ID, interestGeneType = "ensembl_gene_id", referenceSet = "genome", maxNum = 1000, minNum = 5, outputDirectory = outputdir, projectName = "GO-BP", isOutput = T)
+  
+  ### Reactome
+  WebGestaltR(enrichDatabase = "pathway_Reactome", interestGene = degenes$Gene.stable.ID, interestGeneType = "ensembl_gene_id", referenceSet = "genome", maxNum = 1000, minNum = 5, outputDirectory = outputdir, projectName = "Reactome", isOutput = T)
+  
+  ### KEGG
+  WebGestaltR(enrichDatabase = "pathway_KEGG", interestGene = degenes$Gene.stable.ID, interestGeneType = "ensembl_gene_id", referenceSet = "genome", maxNum = 1000, minNum = 5, outputDirectory = outputdir, projectName = "KEGG", isOutput = T)
+  
+  ### TF target
+  WebGestaltR(enrichDatabase = "network_Transcription_Factor_target", interestGene = degenes$Gene.stable.ID, interestGeneType = "ensembl_gene_id", referenceSet = "genome", maxNum = 1000, minNum = 5, outputDirectory = outputdir, projectName = "TF_target", isOutput = T)
+  
+  ### miRNA target
+  WebGestaltR(enrichDatabase = "network_miRNA_target", interestGene = degenes$Gene.stable.ID, interestGeneType = "ensembl_gene_id", referenceSet = "genome", maxNum = 1000, minNum = 5, outputDirectory = outputdir, projectName = "miRNA_target", isOutput = T)
+}
+```
+
+### Get webgestalt enrichment for modules that are enriched in DE genes
+
+```{R}
+modulemembership<-read.table("../output/CD8/wgcna/moduleMembership/all-genes.txt", sep="\t", header = T, stringsAsFactors = F)
+
+### Modules enriched in DE genes - blue, skyblue, turquoise, darkgrey
+
+for (modulecolor in c("blue", "skyblue", "turquoise", "darkgrey")){
+  genesinmodule<-modulemembership[modulemembership$module==modulecolor,"gene"]
+  outputdir<-paste0("../output/CD8/wgcna/webgestalt-enrichment/", modulecolor)
+  dir.create(outputdir, showWarnings = F)
+  ### GO BP
+  WebGestaltR(enrichDatabase = "geneontology_Biological_Process", interestGene = genesinmodule, interestGeneType = "ensembl_gene_id", referenceSet = "genome", maxNum = 1000, minNum = 5, outputDirectory = outputdir, projectName = "GO-BP", isOutput = T)
+  
+  ### Reactome
+  WebGestaltR(enrichDatabase = "pathway_Reactome", interestGene = genesinmodule, interestGeneType = "ensembl_gene_id", referenceSet = "genome", maxNum = 1000, minNum = 5, outputDirectory = outputdir, projectName = "Reactome", isOutput = T)
+  
+  ### KEGG
+  WebGestaltR(enrichDatabase = "pathway_KEGG", interestGene = genesinmodule, interestGeneType = "ensembl_gene_id", referenceSet = "genome", maxNum = 1000, minNum = 5, outputDirectory = outputdir, projectName = "KEGG", isOutput = T)
+  
+  ### TF target
+  WebGestaltR(enrichDatabase = "network_Transcription_Factor_target", interestGene = genesinmodule, interestGeneType = "ensembl_gene_id", referenceSet = "genome", maxNum = 1000, minNum = 5, outputDirectory = outputdir, projectName = "TF_target", isOutput = T)
+  
+  ### miRNA target
+  WebGestaltR(enrichDatabase = "network_miRNA_target", interestGene = genesinmodule, interestGeneType = "ensembl_gene_id", referenceSet = "genome", maxNum = 1000, minNum = 5, outputDirectory = outputdir, projectName = "miRNA_target", isOutput = T)
+}
+
+
+```
