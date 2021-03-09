@@ -1,6 +1,6 @@
 # Gene expression in Lupus CD4 and CD8 T cells
 
-This is an analysis of some publically available data, including scripts for data download, clean up, alignment, analysis, and reporting.
+This repository contains an analysis of some publically available data, including scripts for data download, clean up, alignment, analysis, and reporting (mostly shell and R in the form of R markdown files).
 
 Sequencing files were downloaded from SRA, accessions GSE97264 (CD8 T cells) and GSE97263 (CD4 T cells). Thank you to the M. Botto and C. Shen for making their data available.
 
@@ -22,10 +22,20 @@ Counts were read into R (v4.0.4) and normalized using the TMM method with the ed
 
 *Differential Expression*
 
+43 genes are DE between Less Active Lupus (LAL) and Control (Ctrl) groups. Of these, 37 are also DE between Active Lupus (AL) and Ctrl (Fig 1a). All genes DE in LAL v Ctrl are expressed in the same direction as in AL v Ctrl.
+
 *Co-expression*
 
 Genes were grouped into 32 co-expression modules (plus the "grey" uncategorized module). Of these, 4 modules were enriched in genes DE either in Active or Less Active disease compared to control, or DE between Active and Less Active disease groups.
 
-![Fig 2: Association with disease group and modules with enriched genes](plots/wgcna/modules-w-DE-genes.png)
+![Fig 2: Association with disease group and modules with enriched genes](https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/wgcna/modules-w-DE-genes.png)
 
+Here, we can identify co-expression modules related to lupus (enriched in DE genes in both lupus groups compared to control), modules related to active lupus (enriched in DE genes in AL, but not LAL compared to control), and modules potentially related to lupus activity (modules enriched in DE genes between AL and LAL).
 
+For Less Active lupus vs. control, we see enrichment in the skyblue (5/52, FDR=1e-05) and turquoise (24/3652, FDR=1e-04) modules. For Active lupus vs. control, we also see enrichment in the skyblue (17/52, FDR=1e-07) and turquoise (322/3652, FDR=5e-11) modules, as well as the blue (385/2649, FDR<2.2e-16) and darkgrey (11/67, FDR=0.02) modules. Strikingly, most (104/117 DE genes, 89%) DE genes between Active and Less Active groups fall into the Blue category (104/2649, FDR<2.2e-16).
+
+*Functional analysis*
+
+### Discussion
+
+Thoughts: Blue module has 4 DE genes LAL v control, almost 400 A
