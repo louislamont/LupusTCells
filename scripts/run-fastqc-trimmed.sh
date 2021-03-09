@@ -5,8 +5,8 @@ do
 
 SRR=$(echo ${line} | cut -d , -f1)
 
-indir="../data/CD8/sequencing/${SRR}"
-outdir="../output/CD8/fastqc/raw/${SRR}"
+indir="../output/CD8/trimmed/${SRR}"
+outdir="../output/CD8/fastqc/trimmed/${SRR}"
 [[ -d ${outdir} ]] || mkdir ${outdir}
 
 echo "SRR: ${SRR}"

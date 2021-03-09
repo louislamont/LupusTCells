@@ -377,10 +377,8 @@ png("../plots/CD8/wgcna/modules-w-DE-genes.png", width = 8, height = 14, units =
 par(mar = c(4, 8.5, 3, 3))
 
 labeledHeatmap(Matrix = cbind(moduleTraitCor, rep(0, 26), LACcol[match(str_sub(names(MEs), 3), table = names(LACcol))], ACcol[match(str_sub(names(MEs), 3), table = names(ACcol))], ALAcol[match(str_sub(names(MEs), 3), table = names(ALAcol))]),
-             xLabels = c("DiseaseState", 
-                         #"Visit2", "Visit3", "Visit4", "Visit5", 
+             xLabels = c("DiseaseState",
                          "# of genes", "DE LessActive\nvs. Ctrl (FDR)", "DE Active vs.\nCtrl (FDR)", "DE Active vs.\nLessActive (FDR)"),
-                         #, "DE T0->T3\n(FDR)", "DE T0->PP3\n(FDR)"),
              yLabels = names(MEs),
              ySymbols = names(MEs),
              colorLabels = FALSE,

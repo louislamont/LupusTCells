@@ -55,6 +55,22 @@ cpmout<-cbind(y$genes, cpmout)
 write.table(cpmout, "../output/CD8/edgeR/CPM.txt", sep="\t", col.names = T, row.names = F, quote=F)
 ```
 
+### Get normalization factors for deepTools
+
+These can be used to normalize bigWigs (if those will be used for visualization)
+
+```{R}
+SizeFactors<-y$samples$norm.factors*y$samples$lib.size / 1000000
+
+SF.deepTools<-1/SizeFactors
+
+names(SF.deepTools)<-rownames(y$samples)
+
+outfile<-data.frame(sampleID=names(SF.deepTools), sizeFactors=SF.deepTools)
+
+write.table(outfile, "../output/CD8/edgeR/size-factors-for-deepTools.txt", sep="\t", col.names = T, row.names = F, quote=F)
+```
+
 ```{R}
 png("../plots/CD8/MDS/samples-by-group.png", width = 800, height = 600)
 plotMDS(y, col=as.integer(factor(metadata$source_name)))
@@ -72,7 +88,7 @@ y<-estimateDisp(y, design)
 fit <- glmFit(y, design)
 colnames(design)
 
-### If you want just PC/lncRNA/etc genes (i.e. no pseudogenes, rRNAs, etc.) lrt[lrt$genes$Gene.type %in% c("IG_C_gene", "IG_V_gene", "lncRNA", "miRNA", "protein_coding", "TR_C_gene", "TR_D_gene", "TR_J_gene", "TR_V_gene"),]
+### If you want just PC/lncRNA/etc genes (i.e. no pseudogenes, rRNAs, etc.), can do something like lrt[lrt$genes$Gene.type %in% c("IG_C_gene", "IG_V_gene", "lncRNA", "miRNA", "protein_coding", "TR_C_gene", "TR_D_gene", "TR_J_gene", "TR_V_gene"),] at topTags
 ### Less active disease state vs control
 lrt <- glmLRT(fit, coef=2)
 deoutput <- topTags(lrt, n=Inf)$table

@@ -2,7 +2,7 @@
 
 lib="/Users/matt/projects/hisat-indexes/gencode/gencode.v37"
 
-sed -e 1,2d ../data/CD8/SraRunTable.txt | while read line
+sed -e 1d ../data/CD8/SraRunTable.txt | while read line
 do
 
 SRR=$(echo ${line} | cut -d , -f1)
