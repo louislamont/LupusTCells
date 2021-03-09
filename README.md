@@ -22,13 +22,15 @@ Counts were read into R (v4.0.4) and normalized using the TMM method with the ed
 
 *Differential Expression*
 
-43 genes are DE between Less Active Lupus (LAL) and Control (Ctrl) groups. Of these, 37 are also DE between Active Lupus (AL) and Ctrl (Fig 1a). All genes DE in LAL v Ctrl are expressed in the same direction as in AL v Ctrl.
+43 genes are DE between Less Active Lupus (LAL) and Control (Ctrl) groups. Of these, 37 are also DE between Active Lupus (AL) and Ctrl (Fig 1a). All genes DE in LAL v Ctrl are expressed in the same direction as in AL v Ctrl (Fig 1b).
+
+<img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/compareDE/all-groups.png" alt="Fig 1a: Overlap of DE genes between LAL v Ctrl, AL v Ctrl, and AL v LAL" width="600"/>
+
+<img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/compareDE/FC.png" alt="Fig 1b: Comparison of gene-level fold changes between AL v Ctrl and LAL v Ctrl" width="600"/>
 
 *Co-expression*
 
 Genes were grouped into 32 co-expression modules (plus the "grey" uncategorized module). Of these, 4 modules were enriched in genes DE either in Active or Less Active disease compared to control, or DE between Active and Less Active disease groups.
-
-![Fig 2: Association with disease group and modules with enriched genes](https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/wgcna/modules-w-DE-genes.png)
 
 <img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/wgcna/modules-w-DE-genes.png" alt="Fig 2: Association with disease group and modules with enriched genes" width="600"/>
 
