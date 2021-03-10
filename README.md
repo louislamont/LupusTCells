@@ -4,6 +4,10 @@ This repository contains an analysis of some publically available data, includin
 
 Sequencing files were downloaded from SRA, accessions GSE97264 (CD8 T cells) and GSE97263 (CD4 T cells). Thank you to the M. Botto and C. Shen for making their data available.
 
+# Summary
+
+Accessions contain RNA-Seq data from 3 lupus disease groups: Active (AL), Less Active (LAL), and Control (Ctrl). Differential expression was performed between each of the groups (i.e., AL v C, LAL v C, AL v LAL), as well as downstream analyses such as co-expression, functional enrichment, and network analysis.
+
 ### Methods
 
 *Data acquisition*
@@ -24,7 +28,9 @@ Currently, results are only for CD8 T cells.
 
 **Differential Expression**
 
-43 genes are DE between Less Active Lupus (LAL) and Control (Ctrl) groups. Of these, 37 are also DE between Active Lupus (AL) and Ctrl (Fig 1a). All genes DE in LAL v Ctrl are expressed in the same direction as in AL v Ctrl (Fig 1b).
+
+
+
 
 **Table 1: DE genes in all categories**
 
@@ -41,9 +47,11 @@ Currently, results are only for CD8 T cells.
 
 **Fig 1b: Comparison of gene-level fold changes between AL v Ctrl and LAL v Ctrl**
 
-On the other hand, there are 963 genes DE between AL and Ctrl (Fig 1a). Of note, there are a handful of genes DE in AL v Ctrl that change in the opposite direction as LAL v Ctrl, including LTF, ITGAD, and IGHG1 (upregulated in AL), and UTS2 and ZFP57 (downregulated in AL).
+43 genes are DE between Less Active Lupus (LAL) and Control (Ctrl) groups (Table 1). Of these, 37 are also DE between Active Lupus (AL) and Ctrl (Fig 1a). All genes DE in LAL v Ctrl are expressed in the same direction as in AL v Ctrl (Fig 1b).
 
-Finally, I find 117 genes DE between AL and LAL. Of these, nearly all are also DE with respect to the AL v Ctrl analysis.
+On the other hand, there are 963 genes DE between AL and Ctrl (Table 1, Fig 1a). Of note, there are a handful of genes DE in AL v Ctrl that change in the opposite direction as LAL v Ctrl, including LTF, ITGAD, and IGHG1 (upregulated in AL), and UTS2 and ZFP57 (downregulated in AL) (Fig 1b).
+
+Finally, I find 117 genes DE between AL and LAL (Table 1). Of these, nearly all are also DE with respect to the AL v Ctrl analysis (Fig 1a).
 
 **Co-expression**
 
@@ -57,25 +65,31 @@ Here, we can identify co-expression modules related to lupus (enriched in DE gen
 
 For Less Active lupus vs. control, we see enrichment in the skyblue (5/52, FDR=1e-05) and turquoise (24/3652, FDR=1e-04) modules. For Active lupus vs. control, we also see enrichment in the skyblue (17/52, FDR=1e-07) and turquoise (322/3652, FDR=5e-11) modules, as well as the blue (385/2649, FDR<2.2e-16) and darkgrey (11/67, FDR=0.02) modules. Strikingly, most (104/117 DE genes, 89%) DE genes between Active and Less Active groups fall into the Blue category (104/2649, FDR<2.2e-16).
 
+(note: add direction of DE each group)
+
 **Functional analysis**
 
-GO/Pathways
+GO/Pathways - add GSEA analysis, KEGG or tables from webgestalt for DE analysis. Add functional stuff for enriched modules.
 
-Heatmap with genes and modules
+Heatmap with genes and modules - make heatmaps for AL v C and/or AL v LAL
 
 **Network analysis**
 
-Finally, wanted to examine the group of DE genes in the blue module.
+It was suprising that nearly 90% of genes DE between AL and LAL fell into the blue module, so I wanted to examine these further. These 104 genes were all upregulated in 102 out of 104 genes were annotated in the STRING database; strikingly, nearly all of these were known to interact in a very well connected network (Fig 4).
 
-### Discussion
+<img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/cytoscape/AL-v-LAL-DE-Blue-w-legend.png" alt="Fig 4: Known protein-protein interactions of DE genes in the blue co-expression network" width="600"/>
+
+**Fig 4: Known protein-protein interactions of DE genes in the blue co-expression network**
+
+These genes are also enriched for many GO terms relating to the cell cycle, including cell cycle phase transition (FDR<2.2e-16), positive regulation of cell cycle process (FDR<2.2e-16), cell cycle checkpoint (FDR<2.2e-16), and regulation of cell cycle G2/M phase transition (FDR=4.4e-14), as well as many similar Reactome pathways, such as Amplification of signal from the kinetochores (FDR=2.1e-12) and Activation of E2F1 target genes at G1/S (FDR=1.7e-9).
+
+Additionally, Enrichr found enriched binding near the TSS of these genes for many TFs, including E2F4 (FDR=6.9e-68), FOXM1 (FDR=1.1e-33), NFYA (FDR=4.1e-21), NFYB (FDR=1.9e-18), and SIN3A (FDR=4.9e-16). IRF3 also shows increased binding near these genes (FDR=5.2e-16). Enrichr also found hsa-miR-193b-3p
+
+### Thoughts and discussion
 
 LAL and AL: 
 
-* Cytoskeleton and cell cycle related terms
-
-* Enrichment of E2F4 binding, FOXM1, NFYA and NFYB.
-
-* IRF3 binding enrichment as well -> 
+* Cytoskeleton and cell cycle related terms are upregulated in active lupus vs. less active lupus - increased activity of CD 8 T cells contibutes to increased lupus activity
 
 * [miR-193b "within the peripheral mononuclear cells \[was\] capable of differentiating between lupus patients with nephritis and those without nephritis"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6021342/)
 
