@@ -20,7 +20,7 @@ library(tidyverse)
 
 ```{R}
 files<-Sys.glob("../output/CD8/edgeR/DE/*.txt")
-### Modules enriched in DE genes - blue, skyblue, turquoise, darkgrey
+
 for (file in files){
   degenes<-read.table(file, sep="\t", header=T, stringsAsFactors = F, quote="")
   outname<-str_sub(str_split(file, "/")[[1]][6], 1, -5)

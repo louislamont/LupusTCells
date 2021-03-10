@@ -28,8 +28,13 @@ call="hisat2 -p 6 --rna-strandness RF \
 samtools view -q 15 -Su | samtools sort -m 1G -@ 4 - \
 -o ${outdir}/${SRR}.sorted.bam"
 
-echo $call
-eval $call
+echo ${call}
+eval ${call}
+
+call="samtools index -@ 6 ${outdirdir}/${SRR}.sorted.bam"
+
+echo ${call}
+eval ${call}
 
 echo "${SRR} done"
 

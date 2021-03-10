@@ -9,7 +9,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{R}
 library(tidyverse)
+```
 
+### Fix raw counts
+
+This script takes raw counts from featureCounts and adds info from ensembl, incl. gene name, gene type, chromosome, etc., and writes to a file.
+
+```{R}
 countsin<-read.table("../output/CD8/counts/counts.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
 
 ### Remove version from gene IDs
@@ -28,4 +34,25 @@ fixedcols<-c(colnames(countsout)[1:5], fixednames)
 colnames(countsout)<-fixedcols
 
 write.table(countsout, "../output/CD8/counts/rawcounts.txt", sep="\t", col.names = T, row.names = F, quote=F)
+```
+
+### Exon level counts
+
+```{R}
+### Read in raw counts
+counts<-read.table("../output/CD8/counts/exon-counts.txt", sep="\t", header=T, stringsAsFactors = F)
+
+### Remove version from gene IDs
+counts$Geneid<-unlist(lapply(str_split(counts$Geneid, "\\."), "[[", 1))
+
+### Fix column names
+colnames(counts)<-c("geneID", colnames(counts)[2:6], unlist(lapply(str_split(colnames(counts)[7:ncol(counts)], pattern = "\\."), "[[", 7)))
+
+countsout<-counts[,1:6]
+
+countsout<-merge(geneinfo[,1:4], counts, by=1)
+
+countsout<-countsout[!duplicated(countsout),]
+
+write.table(countsout, "../output/CD8/counts/RawExonCounts.txt", sep="\t", col.names = T, row.names = F, quote=F)
 ```

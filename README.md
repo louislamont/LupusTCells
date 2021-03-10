@@ -1,4 +1,4 @@
-# Gene expression in Lupus CD4 and CD8 T cells
+# Gene expression in Lupus CD8 T cells (and possibly later, CD4 T cells)
 
 This repository contains an analysis of some publically available data, including scripts for data download, clean up, alignment, analysis, and reporting (mostly shell and R in the form of R markdown files). 
 
@@ -20,26 +20,62 @@ Counts were read into R (v4.0.4) and normalized using the TMM method with the ed
 
 ### Results
 
-*Differential Expression*
+Currently, results are only for CD8 T cells.
+
+**Differential Expression**
 
 43 genes are DE between Less Active Lupus (LAL) and Control (Ctrl) groups. Of these, 37 are also DE between Active Lupus (AL) and Ctrl (Fig 1a). All genes DE in LAL v Ctrl are expressed in the same direction as in AL v Ctrl (Fig 1b).
 
-<img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/compareDE/all-groups.png" alt="Fig 1a: Overlap of DE genes between LAL v Ctrl, AL v Ctrl, and AL v LAL" width="600"/>
+**Table 1: DE genes in all categories**
+
+|               | LAL v C | AL v C | AL v LAL |
+|---------------|---------|--------|----------|
+| Upregulated   | 10      | 504    | 109      |
+| Downregulated | 33      | 459    | 8        |
+
+<img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/compareDE/all-groups.png" alt="Fig 1a: Overlap of DE genes in LAL v Ctrl, AL v Ctrl, and AL v LAL" width="600"/>
+
+**Fig 1a: Overlap of DE genes in LAL v Ctrl, AL v Ctrl, and AL v LAL**
 
 <img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/compareDE/FC.png" alt="Fig 1b: Comparison of gene-level fold changes between AL v Ctrl and LAL v Ctrl" width="600"/>
 
-*Co-expression*
+**Fig 1b: Comparison of gene-level fold changes between AL v Ctrl and LAL v Ctrl**
+
+On the other hand, there are 963 genes DE between AL and Ctrl (Fig 1a). Of note, there are a handful of genes DE in AL v Ctrl that change in the opposite direction as LAL v Ctrl, including LTF, ITGAD, and IGHG1 (upregulated in AL), and UTS2 and ZFP57 (downregulated in AL).
+
+Finally, I find 117 genes DE between AL and LAL. Of these, nearly all are also DE with respect to the AL v Ctrl analysis.
+
+**Co-expression**
 
 Genes were grouped into 32 co-expression modules (plus the "grey" uncategorized module). Of these, 4 modules were enriched in genes DE either in Active or Less Active disease compared to control, or DE between Active and Less Active disease groups.
 
 <img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/wgcna/modules-w-DE-genes.png" alt="Fig 2: Association with disease group and modules with enriched genes" width="600"/>
 
+**Fig 2: Association with disease group and modules with enriched genes**
+
 Here, we can identify co-expression modules related to lupus (enriched in DE genes in both lupus groups compared to control), modules related to active lupus (enriched in DE genes in AL, but not LAL compared to control), and modules potentially related to lupus activity (modules enriched in DE genes between AL and LAL).
 
 For Less Active lupus vs. control, we see enrichment in the skyblue (5/52, FDR=1e-05) and turquoise (24/3652, FDR=1e-04) modules. For Active lupus vs. control, we also see enrichment in the skyblue (17/52, FDR=1e-07) and turquoise (322/3652, FDR=5e-11) modules, as well as the blue (385/2649, FDR<2.2e-16) and darkgrey (11/67, FDR=0.02) modules. Strikingly, most (104/117 DE genes, 89%) DE genes between Active and Less Active groups fall into the Blue category (104/2649, FDR<2.2e-16).
 
-*Functional analysis*
+**Functional analysis**
+
+GO/Pathways
+
+Heatmap with genes and modules
+
+**Network analysis**
+
+Finally, wanted to examine the group of DE genes in the blue module.
 
 ### Discussion
 
-Thoughts: Blue module has 4 DE genes LAL v control, almost 400 A
+LAL and AL: 
+
+* Cytoskeleton and cell cycle related terms
+
+* Enrichment of E2F4 binding, FOXM1, NFYA and NFYB.
+
+* IRF3 binding enrichment as well -> 
+
+* [miR-193b "within the peripheral mononuclear cells \[was\] capable of differentiating between lupus patients with nephritis and those without nephritis"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6021342/)
+
