@@ -61,15 +61,19 @@ Genes were grouped into 32 co-expression modules (plus the "grey" uncategorized 
 
 Here, we can identify co-expression modules related to lupus (enriched in DE genes in both lupus groups compared to control), modules related to active lupus (enriched in DE genes in AL, but not LAL compared to control), and modules potentially related to lupus activity (modules enriched in DE genes between AL and LAL).
 
-For Less Active lupus vs. control, we see enrichment in the skyblue (5/52, FDR=1e-05) and turquoise (24/3652, FDR=1e-04) modules. Both of these modules are downregulated compared to controls. For Active lupus vs. control, we also see enrichment in the skyblue (17/52, FDR=1e-07) and turquoise (322/3652, FDR=5e-11) modules, as well as the blue (385/2649, FDR<2.2e-16) and darkgrey (11/67, FDR=0.02) modules. Of these, blue is upregulated compared to control, while the other three modules are downregulated. Strikingly, when examining genes DE between AL and LAL groups, most (104/117 DE genes, 89%) fall into the blue module (2649 total blue genes, FDR<2.2e-16). All 104 genes are upregulated in AL
+For Less Active lupus vs. control, we see enrichment in the skyblue (5/52, FDR=1e-05) and turquoise (24/3652, FDR=1e-04) modules. Both of these modules are downregulated compared to controls. For Active lupus vs. control, we also see enrichment in the skyblue (17/52, FDR=1e-07) and turquoise (322/3652, FDR=5e-11) modules, as well as the blue (385/2649, FDR<2.2e-16) and darkgrey (11/67, FDR=0.02) modules. Of these, blue is upregulated compared to control, while the other three modules are downregulated. Strikingly, when examining genes DE between AL and LAL groups, most (104/117 DE genes, 89%) fall into the blue module (2649 total blue genes, FDR<2.2e-16). All 104 genes are upregulated in AL compared to LAL. Expression and co-expression module of all DE genes is shown in Fig 3.
+
+<img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/heatmaps/allDE-genes.png" alt="Fig 3: Heatmap of expression of DE genes, with co-expression module indicated " width="600"/>
+
+**Fig 3: Expression and module membership of differentially expressed genes in lupus CD8 T cells**
 
 (note: Small modules are interesting, look into skyblue and darkgrey)
 
 **Functional analysis**
 
-GO/Pathways - add GSEA analysis, KEGG or tables from webgestalt for DE analysis. Add functional stuff for enriched modules.
+*Active lupus vs. controls*
 
-Heatmap with genes and modules - make heatmaps for AL v Ctrl and/or AL v LAL
+GO/Pathways - add GSEA analysis, KEGG or tables from webgestalt for DE analysis. Add functional stuff for enriched modules.
 
 **Network analysis**
 
@@ -81,13 +85,13 @@ It was suprising that nearly 90% of genes DE between AL and LAL fell into the bl
 
 These genes are also enriched for many GO terms relating to the cell cycle, including cell cycle phase transition (FDR<2.2e-16), positive regulation of cell cycle process (FDR<2.2e-16), cell cycle checkpoint (FDR<2.2e-16), and regulation of cell cycle G2/M phase transition (FDR=4.4e-14), as well as many similar Reactome pathways, such as Amplification of signal from the kinetochores (FDR=2.1e-12) and Activation of E2F1 target genes at G1/S (FDR=1.7e-9).
 
-Additionally, Enrichr found enriched binding near the TSS of these genes for many TFs, including E2F4 (FDR=6.9e-68), FOXM1 (FDR=1.1e-33), NFYA (FDR=4.1e-21), NFYB (FDR=1.9e-18), and SIN3A (FDR=4.9e-16). IRF3 also shows increased binding near these genes (FDR=5.2e-16). Enrichr also found hsa-miR-193b-3p
+Additionally, Enrichr found enriched binding near the TSS of these genes for many TFs, including E2F4 (FDR=6.9e-68), FOXM1 (FDR=1.1e-33), NFYA (FDR=4.1e-21), NFYB (FDR=1.9e-18), and SIN3A (FDR=4.9e-16). IRF3 also shows increased binding near these genes (FDR=5.2e-16). Enrichr also predicted enriched interactions between genes in this group and hsa-miR-193b-3p (FDR=9.2e-35).
 
 ### Thoughts and discussion
 
 LAL and AL: 
 
-* Cytoskeleton and cell cycle related terms are upregulated in active lupus vs. less active lupus - increased activity of CD 8 T cells contibutes to increased lupus activity
+* Cytoskeleton and cell cycle related terms are upregulated in active lupus vs. less active lupus - increased activity of CD 8 T cells contibutes to increased lupus activity.
 
 * [miR-193b "within the peripheral mononuclear cells \[was\] capable of differentiating between lupus patients with nephritis and those without nephritis"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6021342/)
 

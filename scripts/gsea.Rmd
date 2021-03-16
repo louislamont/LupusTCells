@@ -18,7 +18,7 @@ library(pathview)
 library(enrichplot)
 ```
 
-### Read in T0T1 results (fold changes)
+### Read in AL v Ctrl results (fold changes)
 
 ```{R}
 fcs<-read.table("../output/CD8/edgeR/Active-v-Ctrl.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
