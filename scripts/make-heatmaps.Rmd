@@ -27,6 +27,8 @@ ALvLAL<-read.table("../output/CD8/edgeR/DE/Active-v-LessActive.txt", sep="\t", h
 ALvC<-read.table("../output/CD8/edgeR/DE/Active-v-Ctrl.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
 LALvC<-read.table("../output/CD8/edgeR/DE/LessActive-v-Ctrl.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
 
+allgenes<-unique(c(ALvLAL$Gene.stable.ID, ALvC$Gene.stable.ID, LALvC$Gene.stable.ID))
+
 ### WGCNA modules
 modmem<-read.table("../output/CD8/wgcna/moduleMembership/all-genes.txt", sep="\t", header=T, stringsAsFactors = F, quote="")
 
@@ -60,7 +62,8 @@ names(modcols)<-scaledmod$module
 
 hmod = rowAnnotation(
     module=scaledmod$module,
-    col=list(module=modcols)
+    col=list(module=modcols),
+    show_annotation_name=F
 )
 
 
@@ -85,7 +88,7 @@ ourmetadata<-metadata[metadata$Run %in% ALvCsamps,]
 ha = HeatmapAnnotation(
     group=factor(ourmetadata$source_name, labels=c("Control", "Active")), 
     col=list(group=c("Control"=wes_palette("Cavalcanti1")[1], "Active"=wes_palette("Cavalcanti1")[2])),
-    annotation_name_side="left", annotation_label=" "
+    annotation_name_side="right", annotation_label="Group", show_annotation_name=F
 )
 
 ### Make annotation for right side with co-expression modules
@@ -95,11 +98,96 @@ names(modcols)<-scaledmod$module
 
 hmod = rowAnnotation(
     module=scaledmod$module,
-    col=list(module=modcols)
+    col=list(module=modcols),
+    show_annotation_name=F
 )
 
 #scaled %>% gather(-GeneID, key="Sample", value="Expr") %>% filter(GeneID %in% ALvLAL$Gene.stable.ID)
 
 ht<-Heatmap(scaledmod[,ALvCsamps], cluster_columns = T, top_annotation = ha, right_annotation = hmod, name="scaled\nlog(counts)", show_row_names = F, show_column_names = T, cluster_column_slices = F)
 draw(ht, merge_legend=T)
+```
+
+### All 3
+
+```{R}
+ourcounts<-counts[,c("Gene.stable.ID", metadata$Run)]
+
+### Log transform and scale data
+logcounts<-log2(ourcounts[,2:ncol(ourcounts)]+1)
+scaled<-as.data.frame(t(scale(t(logcounts))))
+scaled$GeneID<-ourcounts$Gene.stable.ID
+
+#scaledgoi<-scaled[scaled$GeneID %in% ALvLAL$Gene.stable.ID,]
+scaledgoi<-scaled[scaled$GeneID %in% allgenes,]
+
+### Make annotation for top with lupus group
+ourmetadata<-metadata
+ourmetadata$group<-factor(c(rep("Active", 5), rep("Less Active", 5), rep("Control", 5)), levels=c("Control", "Less Active", "Active"))
+ha = HeatmapAnnotation(
+    group=factor(ourmetadata$group, levels=c("Control", "Less Active", "Active")), 
+    col=list(group=c("Control"=wes_palette("Cavalcanti1")[2], "Active"=wes_palette("Cavalcanti1")[1], "Less Active"=wes_palette("Cavalcanti1")[3])),
+    annotation_name_side="left", show_annotation_name = F, show_legend=F
+)
+
+### Make annotation for right side with co-expression modules
+scaledmod<-merge(scaledgoi, modmem, by.x=16, by.y=1)
+modcols<-scaledmod$module
+names(modcols)<-scaledmod$module
+
+hmod = rowAnnotation(
+    module=scaledmod$module,
+    col=list(module=modcols),
+    show_annotation_name=F
+)
+
+#scaled %>% gather(-GeneID, key="Sample", value="Expr") %>% filter(GeneID %in% ALvLAL$Gene.stable.ID)
+
+ht<-Heatmap(scaledmod[,ourmetadata$Run], cluster_columns = T, top_annotation = ha, right_annotation = hmod, name="scaled\nlog(counts)", show_row_names = F, show_column_names = F, cluster_column_slices = F, column_split = ourmetadata$group)
+
+png("../plots/CD8/heatmaps/allDE-genes.png", width = 6, height = 6, units = "in", res=600)
+draw(ht, merge_legend=T)
+dev.off()
+```
+
+### AL v LAL, all 3
+
+```{R}
+ourcounts<-counts[,c("Gene.stable.ID", metadata$Run)]
+
+### Log transform and scale data
+logcounts<-log2(ourcounts[,2:ncol(ourcounts)]+1)
+scaled<-as.data.frame(t(scale(t(logcounts))))
+scaled$GeneID<-ourcounts$Gene.stable.ID
+
+#scaledgoi<-scaled[scaled$GeneID %in% ALvLAL$Gene.stable.ID,]
+scaledgoi<-scaled[scaled$GeneID %in% ALvLAL$Gene.stable.ID,]
+
+### Make annotation for top with lupus group
+ourmetadata<-metadata
+ourmetadata$group<-factor(c(rep("Active", 5), rep("Less Active", 5), rep("Control", 5)), levels=c("Control", "Less Active", "Active"))
+ha = HeatmapAnnotation(
+    group=factor(ourmetadata$group, levels=c("Control", "Less Active", "Active")), 
+    col=list(group=c("Control"=wes_palette("Cavalcanti1")[2], "Active"=wes_palette("Cavalcanti1")[1], "Less Active"=wes_palette("Cavalcanti1")[3])),
+    annotation_name_side="left", show_annotation_name = F, show_legend=F
+)
+
+### Make annotation for right side with co-expression modules
+scaledmod<-merge(scaledgoi, modmem, by.x=16, by.y=1)
+modcols<-scaledmod$module
+names(modcols)<-scaledmod$module
+
+hmod = rowAnnotation(
+    module=scaledmod$module,
+    col=list(module=modcols),
+    show_annotation_name=F
+)
+
+#scaled %>% gather(-GeneID, key="Sample", value="Expr") %>% filter(GeneID %in% ALvLAL$Gene.stable.ID)
+
+ht<-Heatmap(scaledmod[,ourmetadata$Run], cluster_columns = T, top_annotation = ha, right_annotation = hmod, name="scaled\nlog(counts)", show_row_names = F, show_column_names = F, cluster_column_slices = F, column_split = ourmetadata$group)
+
+png("../plots/CD8/heatmaps/ALvLAL-genes-allgroups.png", width = 6, height = 6, units = "in", res=600)
+draw(ht, merge_legend=T)
+dev.off()
 ```

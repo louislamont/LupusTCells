@@ -6,7 +6,7 @@ Sequencing files were downloaded from SRA, accessions GSE97264 (CD8 T cells) and
 
 # Summary
 
-Accessions contain RNA-Seq data from 3 lupus disease groups: Active (AL), Less Active (LAL), and Control (Ctrl). Differential expression was performed between each of the groups (i.e., AL v C, LAL v C, AL v LAL), as well as downstream analyses such as co-expression, functional enrichment, and network analysis.
+Accessions contain RNA-Seq data from 3 lupus disease groups: Active (AL), Less Active (LAL), and Control (Ctrl). Differential expression was performed between each of the groups (i.e., AL v Ctrl, LAL v Ctrl, AL v LAL), as well as downstream analyses such as co-expression, functional enrichment, and network analysis.
 
 ### Methods
 
@@ -28,16 +28,14 @@ Currently, results are only for CD8 T cells.
 
 **Differential Expression**
 
+Differential expression at the gene level was examined between LAL and Ctrl, AL and Ctrl, and AL and LAL. The results are summarized in table 1. Genes were determined to be DE if they had an FDR less than 0.05 and a fold change greater than 2 (either up or down).
 
+**Table 1: DE genes in all categories (FDR<0.05, abs(FC)>=2)**
 
-
-
-**Table 1: DE genes in all categories**
-
-|               | LAL v C | AL v C | AL v LAL |
-|---------------|---------|--------|----------|
-| Upregulated   | 10      | 504    | 109      |
-| Downregulated | 33      | 459    | 8        |
+|               | LAL v Ctrl | AL v Ctrl | AL v LAL |
+|---------------|------------|-----------|----------|
+| Upregulated   | 10         | 504       | 109      |
+| Downregulated | 33         | 459       | 8        |
 
 <img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/compareDE/all-groups.png" alt="Fig 1a: Overlap of DE genes in LAL v Ctrl, AL v Ctrl, and AL v LAL" width="600"/>
 
@@ -51,7 +49,7 @@ Currently, results are only for CD8 T cells.
 
 On the other hand, there are 963 genes DE between AL and Ctrl (Table 1, Fig 1a). Of note, there are a handful of genes DE in AL v Ctrl that change in the opposite direction as LAL v Ctrl, including LTF, ITGAD, and IGHG1 (upregulated in AL), and UTS2 and ZFP57 (downregulated in AL) (Fig 1b).
 
-Finally, I find 117 genes DE between AL and LAL (Table 1). Of these, nearly all are also DE with respect to the AL v Ctrl analysis (Fig 1a).
+Finally, I found 117 genes DE between AL and LAL, with a strong majority upregulated in AL (Table 1). Of these, nearly all are also DE with respect to the AL v Ctrl analysis (Fig 1a).
 
 **Co-expression**
 
@@ -59,19 +57,19 @@ Genes were grouped into 32 co-expression modules (plus the "grey" uncategorized 
 
 <img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/wgcna/modules-w-DE-genes.png" alt="Fig 2: Association with disease group and modules with enriched genes" width="600"/>
 
-**Fig 2: Association with disease group and modules with enriched genes**
+**Fig 2: Association of module expression with disease state. Number of DE genes in each module and enrichment FDR indicated**
 
 Here, we can identify co-expression modules related to lupus (enriched in DE genes in both lupus groups compared to control), modules related to active lupus (enriched in DE genes in AL, but not LAL compared to control), and modules potentially related to lupus activity (modules enriched in DE genes between AL and LAL).
 
-For Less Active lupus vs. control, we see enrichment in the skyblue (5/52, FDR=1e-05) and turquoise (24/3652, FDR=1e-04) modules. For Active lupus vs. control, we also see enrichment in the skyblue (17/52, FDR=1e-07) and turquoise (322/3652, FDR=5e-11) modules, as well as the blue (385/2649, FDR<2.2e-16) and darkgrey (11/67, FDR=0.02) modules. Strikingly, most (104/117 DE genes, 89%) DE genes between Active and Less Active groups fall into the Blue category (104/2649, FDR<2.2e-16).
+For Less Active lupus vs. control, we see enrichment in the skyblue (5/52, FDR=1e-05) and turquoise (24/3652, FDR=1e-04) modules. Both of these modules are downregulated compared to controls. For Active lupus vs. control, we also see enrichment in the skyblue (17/52, FDR=1e-07) and turquoise (322/3652, FDR=5e-11) modules, as well as the blue (385/2649, FDR<2.2e-16) and darkgrey (11/67, FDR=0.02) modules. Of these, blue is upregulated compared to control, while the other three modules are downregulated. Strikingly, when examining genes DE between AL and LAL groups, most (104/117 DE genes, 89%) fall into the blue module (2649 total blue genes, FDR<2.2e-16). All 104 genes are upregulated in AL
 
-(note: add direction of DE each group)
+(note: Small modules are interesting, look into skyblue and darkgrey)
 
 **Functional analysis**
 
 GO/Pathways - add GSEA analysis, KEGG or tables from webgestalt for DE analysis. Add functional stuff for enriched modules.
 
-Heatmap with genes and modules - make heatmaps for AL v C and/or AL v LAL
+Heatmap with genes and modules - make heatmaps for AL v Ctrl and/or AL v LAL
 
 **Network analysis**
 
