@@ -71,23 +71,35 @@ For Less Active lupus vs. control, we see enrichment in the skyblue (5/52, FDR=1
 
 **Functional analysis**
 
+Here, I performed GSEA to examine whole transcriptome differences in expression between groups.
+
 *Active lupus vs. controls*
 
-GO/Pathways - add GSEA analysis, KEGG or tables from webgestalt for DE analysis. Add functional stuff for enriched modules.
+The top 30 enriched Reactome pathways in AL vs. Ctrl are shown in Fig 4a and include many related cell cycle and cytoskeleton pathways (cell cycle checkpoints, mitotic metaphase and anaphase, RHO GTPase effectors), interferon pathways, neutrophil degranulation, and hemostatis. Although not shown, these pathways are all upregulated with respect to control samples.
+
+<img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/gsea/Reactome/Active-v-Ctrl-pathways.png" alt="Fig 4a: GSEA enrichment of Reactome pathways between AL and Ctrl patients" width="600"/>
+
+*Active lupus vs. less active lupus*
+
+Likewise, in AL vs. LAL, we see a similar set of pathways related to cell cycle (Fig 4b) which are also upregulated in AL with respect to LAL patients. However, we also observe a set of pathways related to translation (Eukaryotic translation elongation, peptide chain elongation), with genes in these pathways downregulated in AL with respect to LAL patients.
+
+<img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/gsea/Reactome/Active-v-LessActive-pathways.png" alt="Fig 4b: GSEA enrichment of Reactome pathways between AL and LAL patients" width="600"/>
 
 **Network analysis**
 
-It was suprising that nearly 90% of genes DE between AL and LAL fell into the blue module, so I wanted to examine these further. These 104 genes were all upregulated in 102 out of 104 genes were annotated in the STRING database; strikingly, nearly all of these were known to interact in a very well connected network (Fig 4).
+It was suprising that nearly 90% of genes DE between AL and LAL fell into the blue module, so I wanted to examine these further. These 104 genes were all upregulated in 102 out of 104 genes were annotated in the STRING database; strikingly, nearly all of these were known to interact in a very well connected network (Fig 5).
 
-<img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/cytoscape/AL-v-LAL-DE-Blue-w-legend.png" alt="Fig 4: Known protein-protein interactions of DE genes in the blue co-expression network" width="600"/>
+<img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/cytoscape/AL-v-LAL-DE-Blue-w-legend.png" alt="Fig 5: Known protein-protein interactions of DE genes in the blue co-expression network" width="600"/>
 
-**Fig 4: Known protein-protein interactions of DE genes in the blue co-expression network**
+**Fig 5: Known protein-protein interactions of DE genes in the blue co-expression network**
 
 These genes are also enriched for many GO terms relating to the cell cycle, including cell cycle phase transition (FDR<2.2e-16), positive regulation of cell cycle process (FDR<2.2e-16), cell cycle checkpoint (FDR<2.2e-16), and regulation of cell cycle G2/M phase transition (FDR=4.4e-14), as well as many similar Reactome pathways, such as Amplification of signal from the kinetochores (FDR=2.1e-12) and Activation of E2F1 target genes at G1/S (FDR=1.7e-9).
 
 Additionally, Enrichr found enriched binding near the TSS of these genes for many TFs, including E2F4 (FDR=6.9e-68), FOXM1 (FDR=1.1e-33), NFYA (FDR=4.1e-21), NFYB (FDR=1.9e-18), and SIN3A (FDR=4.9e-16). IRF3 also shows increased binding near these genes (FDR=5.2e-16). Enrichr also predicted enriched interactions between genes in this group and hsa-miR-193b-3p (FDR=9.2e-35).
 
 ### Thoughts and discussion
+
+* LAL shows kind of an "inbetween" phenotype with regards to differentially expressed genes. 2 AL patients have a set of genes in the blue co-expression module which look more like LAL/Ctrl (i.e. low expression vs. the other 3 patients). Could this be related to disease phenotype? Maybe the other 3 patients have higher disease activity, nephritis, etc. Can see if there is any metadata on this.
 
 LAL and AL: 
 
