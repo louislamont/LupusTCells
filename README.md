@@ -79,11 +79,15 @@ The top 30 enriched Reactome pathways in AL vs. Ctrl are shown in Fig 4a and inc
 
 <img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/gsea/Reactome/Active-v-Ctrl-pathways.png" alt="Fig 4a: GSEA enrichment of Reactome pathways between AL and Ctrl patients" width="600"/>
 
+**Fig 4a: GSEA enrichment of Reactome pathways between AL and Ctrl patients**
+
 *Active lupus vs. less active lupus*
 
 Likewise, in AL vs. LAL, we see a similar set of pathways related to cell cycle (Fig 4b) which are also upregulated in AL with respect to LAL patients. However, we also observe a set of pathways related to translation (Eukaryotic translation elongation, peptide chain elongation), with genes in these pathways downregulated in AL with respect to LAL patients.
 
 <img src="https://github.com/louislamont/LupusTCells/blob/main/plots/CD8/gsea/Reactome/Active-v-LessActive-pathways.png" alt="Fig 4b: GSEA enrichment of Reactome pathways between AL and LAL patients" width="600"/>
+
+**Fig 4b: GSEA enrichment of Reactome pathways between AL and LAL patients**
 
 **Network analysis**
 
